@@ -14,7 +14,7 @@ export class TodoRepository {
   constructor(
     @Inject('TODO_REPOSITORY')
     private todoRepository: Repository<TodoEntity>,
-  ) {}
+  ) { }
   async createTodo(todoEntity: TodoEntity): Promise<TodoEntity> {
     return this.todoRepository.save(todoEntity);
   }
@@ -22,7 +22,10 @@ export class TodoRepository {
     return this.todoRepository.findOne({ where: { id } });
   }
   async getAllTodos(): Promise<TodoEntity[]> {
-    return this.todoRepository.find();
+    const todos = await this.todoRepository.find({
+      order: { id: 'ASC' },
+    });
+    return todos.slice(0, 10); // max 10
   }
   async updateTodo(todoEntity: TodoEntity): Promise<TodoEntity> {
     return this.todoRepository.save(todoEntity); // save will update if entity has id
@@ -35,4 +38,8 @@ export class TodoRepository {
     return this.todoRepository.find(options);
   }
 
+
+  async deleteAllTodos(): Promise<void> {
+    await this.todoRepository.clear(); // clears all rows in the table
+  }
 }

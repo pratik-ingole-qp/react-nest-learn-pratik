@@ -4,7 +4,7 @@ import { TodoEntity } from '../domain/entities/TodoEntity';
 import { UpdateTodoDto } from '../application/dtos/UpdateTodoDto';
 @Injectable()
 export class TodoService {
-  constructor(private readonly todoRepository: TodoRepository) {}
+  constructor(private readonly todoRepository: TodoRepository) { }
 
   async createTodo(title: string): Promise<TodoEntity> {
     const todo = new TodoEntity();
@@ -15,15 +15,15 @@ export class TodoService {
   async getTodoById(id: number): Promise<TodoEntity | null> {
     return await this.todoRepository.getTodoById(id);
   }
-async getAllTodos(): Promise<TodoEntity[]> {
-    return this.todoRepository.find({
-      where: { isDeleted: false },
-      order: { createdAt: 'ASC' },
-    });
+
+
+  async getAllTodos(): Promise<TodoEntity[]> {
+    return await this.todoRepository.getAllTodos(); // max 10
   }
 
 
-    async updateTodo(id: number, updateData: UpdateTodoDto): Promise<TodoEntity | null> {
+
+  async updateTodo(id: number, updateData: UpdateTodoDto): Promise<TodoEntity | null> {
     const todo = await this.todoRepository.getTodoById(id);
     if (!todo) return null;
     if (updateData.title !== undefined) {
@@ -33,7 +33,7 @@ async getAllTodos(): Promise<TodoEntity[]> {
   }
 
 
- async deleteTodo(id: number): Promise<boolean> {
+  async deleteTodo(id: number): Promise<boolean> {
     const todo = await this.todoRepository.getTodoById(id);
     if (!todo) return false;
     await this.todoRepository.deleteTodo(id);

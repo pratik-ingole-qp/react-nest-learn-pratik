@@ -20,11 +20,12 @@ export class TodoController {
     return todo;
   }
 
-
   @Get()
-  async getAll(): Promise<TodoEntity[]> {
-    return this.todoService.getAllTodos();
+  async getAllTodos() {
+    return this.todoService.getAllTodos(); // max 10
   }
+
+
 
   @Patch(':id')
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
