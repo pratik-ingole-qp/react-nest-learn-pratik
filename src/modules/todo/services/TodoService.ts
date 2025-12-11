@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { TodoRepository } from '../domain/repositories/TodoRepository';
 import { TodoEntity } from '../domain/entities/TodoEntity';
 import { UpdateTodoDto } from '../application/dtos/UpdateTodoDto';
@@ -17,8 +17,20 @@ export class TodoService {
   }
 
 
-  async getAllTodos(): Promise<TodoEntity[]> {
-    return await this.todoRepository.getAllTodos(); // max 10
+  async getAllTodos(page?: any, limit?: any) {
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    // Defaults → tests expect this behavior
+    const finalPage = isNaN(pageNum) || pageNum < 1 ? 1 : pageNum;
+    const finalLimit = isNaN(limitNum) || limitNum < 1 ? 10 : limitNum;
+    // If user explicitly passed invalid negative values
+    if (!isNaN(pageNum) && pageNum < 1) {
+      throw new BadRequestException('Page must be >= 1');
+    }
+    if (!isNaN(limitNum) && limitNum <= 0) {
+      throw new BadRequestException('Limit must be > 0');
+    }
+    return this.todoRepository.getAllTodos(finalPage, finalLimit);
   }
 
 

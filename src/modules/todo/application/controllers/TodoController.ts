@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Patch, Delete, UsePipes, ValidationPipe, NotFoundException } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Patch, Delete, UsePipes, ValidationPipe, NotFoundException, Query } from '@nestjs/common';
 import { TodoService } from '@modules/todo/services/TodoService';
 import { TodoDto } from '../dtos/TodoDto';
 import { UpdateTodoDto } from '../dtos/UpdateTodoDto';
@@ -21,10 +21,9 @@ export class TodoController {
   }
 
   @Get()
-  async getAllTodos() {
-    return this.todoService.getAllTodos(); // max 10
+  getAllTodos(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.todoService.getAllTodos(page, limit);
   }
-
 
 
   @Patch(':id')

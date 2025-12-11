@@ -274,62 +274,102 @@ describe('TodoController E2E Tests', () => {
 
 
 
-    describe('GET /todos', () => {
-      it('should return a maximum of 10 todos if more exist', async () => {
-        // Create 15 todos
-        for (let i = 1; i <= 15; i++) {
-          await request(testApp.app.getHttpServer())
-            .post('/todos')
-            .send({ title: `Todo ${i}` });
-        }
-
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos');
-
-        expect(response.status).toBe(200);
-        expect(response.body.length).toBe(10); // max 10
-
-        // Extra validations
-        response.body.forEach((todo: any) => {
-          expect(todo.isDeleted).toBe(false);
-          expect(typeof todo.title).toBe('string');
-          expect(todo.title.length).toBeGreaterThan(0);
-          expect(new Date(todo.createdAt).toString()).not.toBe('Invalid Date');
+    describe('GET /todos Pagination Tests', () => {
+      async function createTodos(count: number) {
+        const repo = testApp.app.get(TodoRepository);
+        const todos = Array.from({ length: count }, (_, i) => {
+          const t = new TodoEntity();
+          t.title = `Todo ${i + 1}`;
+          return t;
         });
-      });
-
-      it('should return all todos if less than 10 exist', async () => {
-        // Create 5 todos
-        for (let i = 1; i <= 5; i++) {
-          await request(testApp.app.getHttpServer())
-            .post('/todos')
-            .send({ title: `Todo ${i}` });
-        }
-
+        await repo.testingOnlyCreateTodos(todos);
+      }
+      it('should return empty array when no todos exist', async () => {
         const response = await request(testApp.app.getHttpServer())
-          .get('/todos');
-
+          .get('/todos?page=1&limit=10');
         expect(response.status).toBe(200);
-        expect(response.body.length).toBe(5); // all todos
-
-        // Extra validations
-        response.body.forEach((todo: any) => {
-          expect(todo.isDeleted).toBe(false);
-          expect(typeof todo.title).toBe('string');
-          expect(todo.title.length).toBeGreaterThan(0);
-          expect(new Date(todo.createdAt).toString()).not.toBe('Invalid Date');
-        });
+        expect(response.body).toEqual([]);
       });
-
-      it('should return empty array if no todos exist', async () => {
+      it('should return first 10 todos for page=1', async () => {
+        await createTodos(25);
         const response = await request(testApp.app.getHttpServer())
-          .get('/todos');
-
+          .get('/todos?page=1&limit=10');
         expect(response.status).toBe(200);
-        expect(Array.isArray(response.body)).toBe(true);
-        expect(response.body.length).toBe(0);
+        expect(response.body.length).toBe(10);
+        expect(response.body[0].title).toBe('Todo 1');
+        expect(response.body[9].title).toBe('Todo 10');
+      });
+      it('should return next 10 todos for page=2', async () => {
+        await createTodos(25);
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?page=2&limit=10');
+        expect(response.status).toBe(200);
+        expect(response.body.length).toBe(10);
+        expect(response.body[0].title).toBe('Todo 11');
+        expect(response.body[9].title).toBe('Todo 20');
+      });
+      it('should return remaining 5 todos on page=3', async () => {
+        await createTodos(25);
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?page=3&limit=10');
+        expect(response.status).toBe(200);
+        expect(response.body.length).toBe(5);
+        expect(response.body[0].title).toBe('Todo 21');
+        expect(response.body[4].title).toBe('Todo 25');
+      });
+      it('should return empty array for page greater than total pages', async () => {
+        await createTodos(12);
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?page=5&limit=10');
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual([]);
+      });
+      it('should default to page=1 when page is missing', async () => {
+        await createTodos(12);
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?limit=10');
+        expect(response.status).toBe(200);
+        expect(response.body.length).toBe(10);
+      });
+      it('should default to limit=10 when limit is missing', async () => {
+        await createTodos(25);
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?page=2');
+        expect(response.status).toBe(200);
+        expect(response.body.length).toBe(10);
+        expect(response.body[0].title).toBe('Todo 11');
+      });
+      it('should handle invalid (non-numeric) page parameter', async () => {
+        await createTodos(12);
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?page=abc&limit=10');
+        expect(response.status).toBe(200); // default page=1
+        expect(response.body.length).toBe(10);
+      });
+      it('should handle invalid (non-numeric) limit parameter', async () => {
+        await createTodos(25);
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?page=2&limit=xyz');
+        expect(response.status).toBe(200); // default limit=10
+        expect(response.body.length).toBe(10);
+      });
+      it('should return 400 if page is negative', async () => {
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?page=-1&limit=10');
+        expect(response.status).toBe(400);
+      });
+      it('should return 400 if limit is negative', async () => {
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?page=1&limit=-5');
+        expect(response.status).toBe(400);
+      });
+      it('should return 400 if limit is zero', async () => {
+        const response = await request(testApp.app.getHttpServer())
+          .get('/todos?page=1&limit=0');
+        expect(response.status).toBe(400);
       });
     });
+
   });
 
 
