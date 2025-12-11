@@ -1,3 +1,3 @@
 export declare class UpdateTodoDto {
-    title?: string;
+  title?: string
 }

@@ -1,5 +1,5 @@
-import { ensureDockerContainerRunning } from './TestDataBaseUtil'
-import { testEnvLoader } from './utils/TestEnvLoader'
+import {ensureDockerContainerRunning} from './TestDatabaseUtil'
+import {testEnvLoader} from './utils/TestEnvLoader'
 
 testEnvLoader.loadTestEnvironment()
 

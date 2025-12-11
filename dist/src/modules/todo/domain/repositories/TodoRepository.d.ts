@@ -1,16 +1,16 @@
-import { DataSource, Repository } from 'typeorm';
-import { TodoEntity } from '../entities/TodoEntity';
+import {DataSource, Repository} from 'typeorm'
+import {TodoEntity} from '../entities/TodoEntity'
 export declare const todoRepositoryProvider: {
-    provide: string;
-    useFactory: (dataSource: DataSource) => Repository<TodoEntity>;
-    inject: string[];
-}[];
+  provide: string
+  useFactory: (dataSource: DataSource) => Repository<TodoEntity>
+  inject: string[]
+}[]
 export declare class TodoRepository {
-    private todoRepository;
-    constructor(todoRepository: Repository<TodoEntity>);
-    createTodo(todoEntity: TodoEntity): Promise<TodoEntity>;
-    getTodoById(id: number): Promise<TodoEntity | null>;
-    getAllTodos(): Promise<TodoEntity[]>;
-    updateTodo(todoEntity: TodoEntity): Promise<TodoEntity>;
-    deleteTodo(id: number): Promise<void>;
+  private todoRepository
+  constructor(todoRepository: Repository<TodoEntity>)
+  createTodo(todoEntity: TodoEntity): Promise<TodoEntity>
+  getTodoById(id: number): Promise<TodoEntity | null>
+  getAllTodos(): Promise<TodoEntity[]>
+  updateTodo(todoEntity: TodoEntity): Promise<TodoEntity>
+  deleteTodo(id: number): Promise<void>
 }

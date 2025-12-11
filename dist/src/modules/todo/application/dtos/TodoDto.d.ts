@@ -1,3 +1,3 @@
 export declare class TodoDto {
-    title: string;
+  title: string
 }

@@ -1,15 +1,12 @@
-import { IsInt, Min, Max } from 'class-validator';
+import {IsInt, Min, Max} from 'class-validator'
 
 export class GetTodosQueryDto {
-
   @IsInt()
   @Min(1)
-  page?: number;
-
+  page?: number
 
   @IsInt()
   @Min(1)
   @Max(100)
-  limit?: number;
-
+  limit?: number
 }

@@ -1,378 +1,331 @@
-import { TodoEntity } from '@modules/todo/domain/entities/TodoEntity';
-import { TodoRepository } from '@modules/todo/domain/repositories/TodoRepository';
-import { TodoDto } from '@src/modules/todo/application/dtos/TodoDto';
-import { ITestApp, testSetupUtil } from '@test/TestSetupUtil';
-import * as request from 'supertest';
-import { DataSource, Repository } from 'typeorm';
-
+import { TodoEntity } from '@modules/todo/domain/entities/TodoEntity'
+import { TodoRepository } from '@modules/todo/domain/repositories/TodoRepository'
+import { TodoDto } from '@src/modules/todo/application/dtos/TodoDto'
+import { ITestApp, testSetupUtil } from '@test/TestSetupUtil'
+import * as request from 'supertest'
 
 describe('TodoController E2E Tests', () => {
-  let testApp: ITestApp;
-  let todoRepository: TodoRepository;
-  beforeEach(async () => {
-    testApp = await testSetupUtil.startTestApp();
-    todoRepository = testApp.app.get<TodoRepository>(TodoRepository);
-    await todoRepository.deleteAllTodos();
-  });
-  afterEach(async () => {
-    await testSetupUtil.closeApp(testApp);
-  });
+  let testApp: ITestApp
+  let todoRepository: TodoRepository
 
+  beforeEach(async () => {
+    testApp = await testSetupUtil.startTestApp()
+    todoRepository = testApp.app.get<TodoRepository>(TodoRepository)
+    await todoRepository.deleteAllTodos()
+  })
+
+  afterEach(async () => {
+    await testSetupUtil.closeApp(testApp)
+  })
+
+  // ---------------------------------------------------------------------------
+  // POST /todos
+  // ---------------------------------------------------------------------------
   describe('POST /todos', () => {
     it('should create a new todo', async () => {
-      const createTodo: TodoDto = { title: 'Test Todo' };
+      const createTodo: TodoDto = { title: 'Test Todo' }
+
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send(createTodo);
+        .send(createTodo)
 
-      expect(response.status).toBe(201);
-      expect(response.body.title).toBe(createTodo.title);
-      expect(response.body.id).toBeDefined();
-    });
+      expect(response.status).toBe(201)
+      expect(response.body.title).toBe(createTodo.title)
+      expect(response.body.id).toBeDefined()
+    })
 
     it('should return 400 when body is empty', async () => {
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({});
+        .send({})
 
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain('title should not be empty');
-    });
+      expect(response.status).toBe(400)
+      expect(response.body.message).toContain('title should not be empty')
+    })
 
     it('should return 400 when title is empty', async () => {
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: '' });
+        .send({ title: '' })
 
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain('title should not be empty');
-    });
+      expect(response.status).toBe(400)
+      expect(response.body.message).toContain('title should not be empty')
+    })
 
     it('should return 400 when title is not a string', async () => {
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: 123 });
+        .send({ title: 123 })
 
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain('title must be a string');
-    });
+      expect(response.status).toBe(400)
+      expect(response.body.message).toContain('title must be a string')
+    })
 
-    it('should return 400 for a title with 0 characters', async () => {
+    it('should allow exactly 255 characters', async () => {
+      const title255 = 'a'.repeat(255)
+
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: '' });
+        .send({ title: title255 })
 
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain('title should not be empty');
-    });
+      expect(response.status).toBe(201)
+      expect(response.body.title.length).toBe(255)
+    })
 
-    it('should allow a title with exactly 255 characters', async () => {
-      const title255 = 'a'.repeat(255);
+    it('should return 400 for 256 characters', async () => {
+      const title256 = 'a'.repeat(256)
+
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: title255 });
+        .send({ title: title256 })
 
-      expect(response.status).toBe(201);
-      expect(response.body.title.length).toBe(255);
-    });
+      expect(response.status).toBe(400)
+      expect(response.body.message).toContain(
+        'title must be shorter than or equal to 255 characters',
+      )
+    })
+  })
 
-    it('should return 400 for a title with 256 characters', async () => {
-      const title256 = 'a'.repeat(256);
-      const response = await request(testApp.app.getHttpServer())
-        .post('/todos')
-        .send({ title: title256 });
-
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain("title must be shorter than or equal to 255 characters");
-    });
-
-    it('should return 400 when title exceeds max length', async () => {
-      const longTitle = 'a'.repeat(300);
-      const response = await request(testApp.app.getHttpServer())
-        .post('/todos')
-        .send({ title: longTitle });
-
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain("title must be shorter than or equal to 255 characters");
-    });
-  });
-
-
+  // ---------------------------------------------------------------------------
+  // DELETE /todos/:id
+  // ---------------------------------------------------------------------------
   describe('DELETE /todos/:id', () => {
     it('should delete a todo by id', async () => {
-      const todoToCreate: TodoDto = { title: 'Todo to delete' };
       const createResponse = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send(todoToCreate);
+        .send({ title: 'Todo to delete' })
 
-      const todoId = createResponse.body.id;
+      const id = createResponse.body.id
 
       const deleteResponse = await request(testApp.app.getHttpServer())
-        .delete(`/todos/${todoId}`);
+        .delete(`/todos/${id}`)
 
-      expect(deleteResponse.status).toBe(200);
-      expect(deleteResponse.body.message).toBeDefined();
+      expect(deleteResponse.status).toBe(200)
 
-      const getResponse = await request(testApp.app.getHttpServer())
-        .get(`/todos/${todoId}`);
-
-      expect(getResponse.status).toBe(404);
-    });
+      const getResponse = await request(testApp.app.getHttpServer()).get(
+        `/todos/${id}`,
+      )
+      expect(getResponse.status).toBe(404)
+    })
 
     it('should return 404 if todo does not exist', async () => {
-      const deleteResponse = await request(testApp.app.getHttpServer())
-        .delete('/todos/999999');
+      const response = await request(testApp.app.getHttpServer()).delete(
+        '/todos/999999',
+      )
 
-      expect(deleteResponse.status).toBe(404);
-      expect(deleteResponse.body.message).toBe('Todo with ID 999999 not found');
-    });
+      expect(response.status).toBe(404)
+      expect(response.body.message).toBe('Todo with ID 999999 not found')
+    })
 
     it('should return 400 for invalid id format', async () => {
-      const deleteResponse = await request(testApp.app.getHttpServer())
-        .delete('/todos/invalid-id');
+      const response = await request(testApp.app.getHttpServer()).delete(
+        '/todos/invalid',
+      )
 
-      expect(deleteResponse.status).toBe(400);
-      expect(deleteResponse.body.message).toContain('Validation failed');
-    });
+      expect(response.status).toBe(400)
+      expect(response.body.message).toContain('Validation failed')
+    })
 
     it('should return 404 if todo already deleted', async () => {
-      const todoToCreate: TodoDto = { title: 'Todo to delete twice' };
       const createResponse = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send(todoToCreate);
+        .send({ title: 'Todo' })
 
-      const todoId = createResponse.body.id;
+      const id = createResponse.body.id
 
-      // First deletion
-      await request(testApp.app.getHttpServer()).delete(`/todos/${todoId}`);
+      await request(testApp.app.getHttpServer()).delete(`/todos/${id}`)
 
-      // Second deletion
-      const deleteAgainResponse = await request(testApp.app.getHttpServer())
-        .delete(`/todos/${todoId}`);
+      const second = await request(testApp.app.getHttpServer()).delete(
+        `/todos/${id}`,
+      )
 
-      expect(deleteAgainResponse.status).toBe(404);
-      expect(deleteAgainResponse.body.message).toBe(`Todo with ID ${todoId} not found`);
-    });
-  });
+      expect(second.status).toBe(404)
+    })
+  })
 
-
+  // ---------------------------------------------------------------------------
+  // PATCH /todos/:id
+  // ---------------------------------------------------------------------------
   describe('PATCH /todos/:id', () => {
-    it('should update a todo by id', async () => {
-      const todoToCreate: TodoDto = { title: 'Original title' };
+    it('should update a todo', async () => {
       const createResponse = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send(todoToCreate);
+        .send({ title: 'Original' })
 
-      const todoId = createResponse.body.id;
-      const updatedData = { title: 'Updated title' };
+      const id = createResponse.body.id
 
       const updateResponse = await request(testApp.app.getHttpServer())
-        .patch(`/todos/${todoId}`)
-        .send(updatedData);
+        .patch(`/todos/${id}`)
+        .send({ title: 'Updated' })
 
-      expect(updateResponse.status).toBe(200);
-      expect(updateResponse.body.title).toBe(updatedData.title);
+      expect(updateResponse.status).toBe(200)
+      expect(updateResponse.body.title).toBe('Updated')
+    })
 
-      const getResponse = await request(testApp.app.getHttpServer())
-        .get(`/todos/${todoId}`);
-
-      expect(getResponse.body.title).toBe(updatedData.title);
-    });
-
-    it('should return 404 if todo does not exist', async () => {
-      const updatedData = { title: 'Updated title' };
-      const updateResponse = await request(testApp.app.getHttpServer())
+    it('should return 404 for unknown id', async () => {
+      const response = await request(testApp.app.getHttpServer())
         .patch('/todos/999999')
-        .send(updatedData);
+        .send({ title: 'X' })
 
-      expect(updateResponse.status).toBe(404);
-      expect(updateResponse.body.message).toBe('Todo with ID 999999 not found');
-    });
+      expect(response.status).toBe(404)
+    })
 
-    it('should return 400 for invalid id format', async () => {
-      const updatedData = { title: 'Updated title' };
-      const updateResponse = await request(testApp.app.getHttpServer())
-        .patch('/todos/invalid-id')
-        .send(updatedData);
+    it('should return 400 for invalid id', async () => {
+      const response = await request(testApp.app.getHttpServer())
+        .patch('/todos/invalid')
+        .send({ title: 'X' })
 
-      expect(updateResponse.status).toBe(400);
-      expect(updateResponse.body.message).toContain('Validation failed');
-    });
+      expect(response.status).toBe(400)
+      expect(response.body.message).toContain('Validation failed')
+    })
 
     it('should return 400 if title is not a string', async () => {
-      const todoToCreate: TodoDto = { title: 'Original title' };
-      const createResponse = await request(testApp.app.getHttpServer())
+      const create = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send(todoToCreate);
+        .send({ title: 'Test' })
 
-      const todoId = createResponse.body.id;
-      const invalidData = { title: 123 };
+      const id = create.body.id
 
-      const updateResponse = await request(testApp.app.getHttpServer())
-        .patch(`/todos/${todoId}`)
-        .send(invalidData);
-
-      expect(updateResponse.status).toBe(400);
-      expect(updateResponse.body.message).toContain('title must be a string');
-    });
-
-    it('should return 400 for a title with 0 characters', async () => {
       const response = await request(testApp.app.getHttpServer())
-        .post('/todos')
-        .send({ title: '' });
+        .patch(`/todos/${id}`)
+        .send({ title: 123 })
 
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain('title should not be empty');
-    });
+      expect(response.status).toBe(400)
+      expect(response.body.message).toContain('title must be a string')
+    })
+  })
 
-    it('should allow a title with exactly 255 characters', async () => {
-      const title255 = 'a'.repeat(255);
-      const response = await request(testApp.app.getHttpServer())
-        .post('/todos')
-        .send({ title: title255 });
+  // ---------------------------------------------------------------------------
+  // GET /todos Pagination
+  // ---------------------------------------------------------------------------
+  describe('GET /todos Pagination Tests', () => {
+    async function createTodos(count: number): Promise<void> {
+      const repo = testApp.app.get(TodoRepository)
+      const items = Array.from({ length: count }, (_, i) => {
+        const t = new TodoEntity()
+        t.title = `Todo ${i + 1}`
+        return t
+      })
+      await repo.testingOnlyCreateTodos(items)
+    }
 
-      expect(response.status).toBe(201);
-      expect(response.body.title.length).toBe(255);
-    });
+    it('should return empty array when no todos exist', async () => {
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=1&limit=10',
+      )
+      expect(res.status).toBe(200)
+      expect(res.body).toEqual([])
+    })
 
-    it('should return 400 for a title with 256 characters', async () => {
-      const title256 = 'a'.repeat(256);
-      const response = await request(testApp.app.getHttpServer())
-        .post('/todos')
-        .send({ title: title256 });
+    it('should return first 10 items', async () => {
+      await createTodos(25)
 
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain("title must be shorter than or equal to 255 characters");
-    });
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=1&limit=10',
+      )
 
-    it('should return 400 when title exceeds max length', async () => {
-      const longTitle = 'a'.repeat(300);
-      const response = await request(testApp.app.getHttpServer())
-        .post('/todos')
-        .send({ title: longTitle });
+      expect(res.status).toBe(200)
+      expect(res.body.length).toBe(10)
+      expect(res.body[0].title).toBe('Todo 1')
+    })
 
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain("title must be shorter than or equal to 255 characters");
-    });
+    it('should return next 10 items', async () => {
+      await createTodos(25)
 
-    it('should return 400 if request body contains unknown fields', async () => {
-      const todoToCreate: TodoDto = { title: 'Original title' };
-      const createResponse = await request(testApp.app.getHttpServer())
-        .post('/todos')
-        .send(todoToCreate);
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=2&limit=10',
+      )
 
-      const todoId = createResponse.body.id;
-      const invalidData = { unknownField: 'invalid' };
+      expect(res.status).toBe(200)
+      expect(res.body.length).toBe(10)
+      expect(res.body[0].title).toBe('Todo 11')
+    })
 
-      const updateResponse = await request(testApp.app.getHttpServer())
-        .patch(`/todos/${todoId}`)
-        .send(invalidData);
+    it('should return remaining 5 items', async () => {
+      await createTodos(25)
 
-      expect(updateResponse.status).toBe(400);
-      expect(updateResponse.body.message[0]).toContain('should not exist');
-    });
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=3&limit=10',
+      )
 
+      expect(res.status).toBe(200)
+      expect(res.body.length).toBe(5)
+    })
 
+    it('should return empty for exceeding page', async () => {
+      await createTodos(12)
 
-    describe('GET /todos Pagination Tests', () => {
-      async function createTodos(count: number) {
-        const repo = testApp.app.get(TodoRepository);
-        const todos = Array.from({ length: count }, (_, i) => {
-          const t = new TodoEntity();
-          t.title = `Todo ${i + 1}`;
-          return t;
-        });
-        await repo.testingOnlyCreateTodos(todos);
-      }
-      it('should return empty array when no todos exist', async () => {
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=1&limit=10');
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual([]);
-      });
-      it('should return first 10 todos for page=1', async () => {
-        await createTodos(25);
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=1&limit=10');
-        expect(response.status).toBe(200);
-        expect(response.body.length).toBe(10);
-        expect(response.body[0].title).toBe('Todo 1');
-        expect(response.body[9].title).toBe('Todo 10');
-      });
-      it('should return next 10 todos for page=2', async () => {
-        await createTodos(25);
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=2&limit=10');
-        expect(response.status).toBe(200);
-        expect(response.body.length).toBe(10);
-        expect(response.body[0].title).toBe('Todo 11');
-        expect(response.body[9].title).toBe('Todo 20');
-      });
-      it('should return remaining 5 todos on page=3', async () => {
-        await createTodos(25);
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=3&limit=10');
-        expect(response.status).toBe(200);
-        expect(response.body.length).toBe(5);
-        expect(response.body[0].title).toBe('Todo 21');
-        expect(response.body[4].title).toBe('Todo 25');
-      });
-      it('should return empty array for page greater than total pages', async () => {
-        await createTodos(12);
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=5&limit=10');
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual([]);
-      });
-      it('should default to page=1 when page is missing', async () => {
-        await createTodos(12);
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?limit=10');
-        expect(response.status).toBe(200);
-        expect(response.body.length).toBe(10);
-      });
-      it('should default to limit=10 when limit is missing', async () => {
-        await createTodos(25);
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=2');
-        expect(response.status).toBe(200);
-        expect(response.body.length).toBe(10);
-        expect(response.body[0].title).toBe('Todo 11');
-      });
-      it('should handle invalid (non-numeric) page parameter', async () => {
-        await createTodos(12);
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=abc&limit=10');
-        expect(response.status).toBe(200); // default page=1
-        expect(response.body.length).toBe(10);
-      });
-      it('should handle invalid (non-numeric) limit parameter', async () => {
-        await createTodos(25);
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=2&limit=xyz');
-        expect(response.status).toBe(200); // default limit=10
-        expect(response.body.length).toBe(10);
-      });
-      it('should return 400 if page is negative', async () => {
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=-1&limit=10');
-        expect(response.status).toBe(400);
-      });
-      it('should return 400 if limit is negative', async () => {
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=1&limit=-5');
-        expect(response.status).toBe(400);
-      });
-      it('should return 400 if limit is zero', async () => {
-        const response = await request(testApp.app.getHttpServer())
-          .get('/todos?page=1&limit=0');
-        expect(response.status).toBe(400);
-      });
-    });
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=5&limit=10',
+      )
 
-  });
+      expect(res.status).toBe(200)
+      expect(res.body).toEqual([])
+    })
 
+    it('should default page=1 when missing', async () => {
+      await createTodos(12)
 
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?limit=10',
+      )
 
+      expect(res.status).toBe(200)
+      expect(res.body.length).toBe(10)
+    })
 
-});
+    it('should default limit=10 when missing', async () => {
+      await createTodos(25)
+
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=2',
+      )
+
+      expect(res.status).toBe(200)
+      expect(res.body.length).toBe(10)
+    })
+
+    it('should default for invalid page', async () => {
+      await createTodos(12)
+
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=abc&limit=10',
+      )
+
+      expect(res.status).toBe(200)
+      expect(res.body.length).toBe(10)
+    })
+
+    it('should default for invalid limit', async () => {
+      await createTodos(25)
+
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=2&limit=xyz',
+      )
+
+      expect(res.status).toBe(200)
+      expect(res.body.length).toBe(10)
+    })
+
+    it('should return 400 for negative page', async () => {
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=-1&limit=10',
+      )
+      expect(res.status).toBe(400)
+    })
+
+    it('should return 400 for negative limit', async () => {
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=1&limit=-5',
+      )
+      expect(res.status).toBe(400)
+    })
+
+    it('should return 400 for limit=0', async () => {
+      const res = await request(testApp.app.getHttpServer()).get(
+        '/todos?page=1&limit=0',
+      )
+      expect(res.status).toBe(400)
+    })
+  })
+})
