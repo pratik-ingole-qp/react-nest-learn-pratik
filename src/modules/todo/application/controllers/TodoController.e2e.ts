@@ -1,7 +1,7 @@
-import { TodoEntity } from '@modules/todo/domain/entities/TodoEntity'
-import { TodoRepository } from '@modules/todo/domain/repositories/TodoRepository'
-import { TodoDto } from '@src/modules/todo/application/dtos/TodoDto'
-import { ITestApp, testSetupUtil } from '@test/TestSetupUtil'
+import {TodoEntity} from '@modules/todo/domain/entities/TodoEntity'
+import {TodoRepository} from '@modules/todo/domain/repositories/TodoRepository'
+import {TodoDto} from '@src/modules/todo/application/dtos/TodoDto'
+import {ITestApp, testSetupUtil} from '@test/TestSetupUtil'
 import * as request from 'supertest'
 
 describe('TodoController E2E Tests', () => {
@@ -23,7 +23,7 @@ describe('TodoController E2E Tests', () => {
   // ---------------------------------------------------------------------------
   describe('POST /todos', () => {
     it('should create a new todo', async () => {
-      const createTodo: TodoDto = { title: 'Test Todo' }
+      const createTodo: TodoDto = {title: 'Test Todo'}
 
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
@@ -46,7 +46,7 @@ describe('TodoController E2E Tests', () => {
     it('should return 400 when title is empty', async () => {
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: '' })
+        .send({title: ''})
 
       expect(response.status).toBe(400)
       expect(response.body.message).toContain('title should not be empty')
@@ -55,7 +55,7 @@ describe('TodoController E2E Tests', () => {
     it('should return 400 when title is not a string', async () => {
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: 123 })
+        .send({title: 123})
 
       expect(response.status).toBe(400)
       expect(response.body.message).toContain('title must be a string')
@@ -66,7 +66,7 @@ describe('TodoController E2E Tests', () => {
 
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: title255 })
+        .send({title: title255})
 
       expect(response.status).toBe(201)
       expect(response.body.title.length).toBe(255)
@@ -77,7 +77,7 @@ describe('TodoController E2E Tests', () => {
 
       const response = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: title256 })
+        .send({title: title256})
 
       expect(response.status).toBe(400)
       expect(response.body.message).toContain(
@@ -93,12 +93,13 @@ describe('TodoController E2E Tests', () => {
     it('should delete a todo by id', async () => {
       const createResponse = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: 'Todo to delete' })
+        .send({title: 'Todo to delete'})
 
       const id = createResponse.body.id
 
-      const deleteResponse = await request(testApp.app.getHttpServer())
-        .delete(`/todos/${id}`)
+      const deleteResponse = await request(testApp.app.getHttpServer()).delete(
+        `/todos/${id}`,
+      )
 
       expect(deleteResponse.status).toBe(200)
 
@@ -129,7 +130,7 @@ describe('TodoController E2E Tests', () => {
     it('should return 404 if todo already deleted', async () => {
       const createResponse = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: 'Todo' })
+        .send({title: 'Todo'})
 
       const id = createResponse.body.id
 
@@ -150,13 +151,13 @@ describe('TodoController E2E Tests', () => {
     it('should update a todo', async () => {
       const createResponse = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: 'Original' })
+        .send({title: 'Original'})
 
       const id = createResponse.body.id
 
       const updateResponse = await request(testApp.app.getHttpServer())
         .patch(`/todos/${id}`)
-        .send({ title: 'Updated' })
+        .send({title: 'Updated'})
 
       expect(updateResponse.status).toBe(200)
       expect(updateResponse.body.title).toBe('Updated')
@@ -165,7 +166,7 @@ describe('TodoController E2E Tests', () => {
     it('should return 404 for unknown id', async () => {
       const response = await request(testApp.app.getHttpServer())
         .patch('/todos/999999')
-        .send({ title: 'X' })
+        .send({title: 'X'})
 
       expect(response.status).toBe(404)
     })
@@ -173,7 +174,7 @@ describe('TodoController E2E Tests', () => {
     it('should return 400 for invalid id', async () => {
       const response = await request(testApp.app.getHttpServer())
         .patch('/todos/invalid')
-        .send({ title: 'X' })
+        .send({title: 'X'})
 
       expect(response.status).toBe(400)
       expect(response.body.message).toContain('Validation failed')
@@ -182,13 +183,13 @@ describe('TodoController E2E Tests', () => {
     it('should return 400 if title is not a string', async () => {
       const create = await request(testApp.app.getHttpServer())
         .post('/todos')
-        .send({ title: 'Test' })
+        .send({title: 'Test'})
 
       const id = create.body.id
 
       const response = await request(testApp.app.getHttpServer())
         .patch(`/todos/${id}`)
-        .send({ title: 123 })
+        .send({title: 123})
 
       expect(response.status).toBe(400)
       expect(response.body.message).toContain('title must be a string')
@@ -201,7 +202,7 @@ describe('TodoController E2E Tests', () => {
   describe('GET /todos Pagination Tests', () => {
     async function createTodos(count: number): Promise<void> {
       const repo = testApp.app.get(TodoRepository)
-      const items = Array.from({ length: count }, (_, i) => {
+      const items = Array.from({length: count}, (_, i) => {
         const t = new TodoEntity()
         t.title = `Todo ${i + 1}`
         return t

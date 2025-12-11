@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
-import { TodoRepository } from '../domain/repositories/TodoRepository'
-import { TodoEntity } from '../domain/entities/TodoEntity'
-import { UpdateTodoDto } from '../application/dtos/UpdateTodoDto'
+import {BadRequestException, Injectable} from '@nestjs/common'
+import {TodoRepository} from '../domain/repositories/TodoRepository'
+import {TodoEntity} from '../domain/entities/TodoEntity'
+import {UpdateTodoDto} from '../application/dtos/UpdateTodoDto'
 
 @Injectable()
 export class TodoService {
-  constructor(private readonly todoRepository: TodoRepository) { }
+  constructor(private readonly todoRepository: TodoRepository) {}
 
   async createTodo(title: string): Promise<TodoEntity> {
     const todo = new TodoEntity()
@@ -17,10 +17,7 @@ export class TodoService {
     return this.todoRepository.getTodoById(id)
   }
 
-  async getAllTodos(
-    page?: string,
-    limit?: string,
-  ): Promise<TodoEntity[]> {
+  async getAllTodos(page?: string, limit?: string): Promise<TodoEntity[]> {
     const pageNum = Number(page)
     const limitNum = Number(limit)
 

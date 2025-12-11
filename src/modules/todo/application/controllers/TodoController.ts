@@ -12,16 +12,16 @@ import {
   NotFoundException,
   Query,
 } from '@nestjs/common'
-import { TodoService } from '@modules/todo/services/TodoService'
-import { TodoDto } from '../dtos/TodoDto'
-import { UpdateTodoDto } from '../dtos/UpdateTodoDto'
+import {TodoService} from '@modules/todo/services/TodoService'
+import {TodoDto} from '../dtos/TodoDto'
+import {UpdateTodoDto} from '../dtos/UpdateTodoDto'
 
 @Controller('todos')
 export class TodoController {
-  constructor(private readonly todoService: TodoService) { }
+  constructor(private readonly todoService: TodoService) {}
 
   @Post()
-  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UsePipes(new ValidationPipe({whitelist: true}))
   async createTodo(@Body() todoDto: TodoDto): Promise<TodoDto> {
     return this.todoService.createTodo(todoDto.title)
   }
@@ -46,7 +46,7 @@ export class TodoController {
   }
 
   @Patch(':id')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  @UsePipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}))
   async updateTodo(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTodoDto: UpdateTodoDto,
@@ -63,13 +63,13 @@ export class TodoController {
   @Delete(':id')
   async deleteTodo(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<{ message: string }> {
+  ): Promise<{message: string}> {
     const deleted = await this.todoService.deleteTodo(id)
 
     if (!deleted) {
       throw new NotFoundException(`Todo with ID ${id} not found`)
     }
 
-    return { message: `Todo with ID ${id} deleted successfully` }
+    return {message: `Todo with ID ${id} deleted successfully`}
   }
 }
