@@ -1,43 +1,40 @@
-import {INestApplication, ValidationPipe} from '@nestjs/common'
-import {Test, TestingModule} from '@nestjs/testing'
-import {AppModule} from '@src/AppModule'
-
+//import { TodoService } from '@modules/todo/application/services/TodoService';
+import { INestApplication, Logger, ValidationPipe } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
+import { AppModule } from '@src/AppModule'
+import { runSharedInitializationWithTest } from '@src/sharedAppInitializationWithTests'
 export interface ITestApp {
   app: INestApplication
   moduleRef: TestingModule
+  // services: { todoService: TodoService };
 }
-
 const startTestApp = async (): Promise<ITestApp> => {
+  const logger = new Logger()
+  // logger.localInstance?.setLogLevels?.(['error', 'warn'])
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile()
-
+  }).setLogger(logger)
+    .compile()
   const app = moduleRef.createNestApplication()
-
-  // Global validation (same as main.ts)
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  )
-
+  app.useLogger(['error', 'warn'])
+  await runSharedInitializationWithTest(app)
   await app.init()
-
   return {
     app,
     moduleRef,
   }
 }
-
 const closeApp = async (testApp: ITestApp): Promise<void> => {
-  if (testApp?.app) {
-    await testApp.app.close()
-  }
+  await testApp.app.close()
 }
-
 export const testSetupUtil = {
   startTestApp,
   closeApp,
 }
+
+
+
+
+
+
+

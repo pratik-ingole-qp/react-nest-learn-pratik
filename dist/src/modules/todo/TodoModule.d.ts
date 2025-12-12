@@ -1,1 +1,2 @@
-export declare class TodoModule {}
+export declare class TodoModule {
+}

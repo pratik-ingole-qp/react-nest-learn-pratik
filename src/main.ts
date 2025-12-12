@@ -1,13 +1,9 @@
-import {NestFactory} from '@nestjs/core'
-import {AppModule} from './AppModule'
-import {ValidationPipe} from '@nestjs/common'
-
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from './AppModule'
+import { runSharedInitializationWithTest } from './sharedAppInitializationWithTests'
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)
-  app.useGlobalPipes(new ValidationPipe())
-
-  const port = process.env.PORT || 3350
-  await app.listen(port)
-  console.log(`Application is running on: http://localhost:${port}`)
+  await runSharedInitializationWithTest(app)
+  await app.listen(process.env.PORT ?? 3000)
 }
 bootstrap()

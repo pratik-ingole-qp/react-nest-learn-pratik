@@ -1,2 +1,2 @@
-import {IAppConfig} from './IAppConfig'
-export declare const loadAppConfig: () => IAppConfig
+import { IAppConfig } from './IAppConfig';
+export declare const loadAppConfig: () => IAppConfig;

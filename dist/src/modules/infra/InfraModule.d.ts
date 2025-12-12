@@ -1,1 +1,2 @@
-export declare class InfraModule {}
+export declare class InfraModule {
+}
