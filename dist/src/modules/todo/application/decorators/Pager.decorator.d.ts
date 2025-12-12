@@ -1,1 +1,1 @@
-export declare const Pager: (...dataOrPipes: unknown[]) => ParameterDecorator;
+export declare const pager: (...dataOrPipes: unknown[]) => ParameterDecorator;

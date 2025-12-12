@@ -5,7 +5,6 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Put,
   Delete,
   Logger,
   Patch,
@@ -14,17 +13,14 @@ import { TodoDto } from '../dtos/TodoDto'
 import { NotFoundException } from '@nestjs/common'
 import { TodoEntity } from '@modules/todo/domain/entities/TodoEntity'
 import { PagerDto } from '../dtos/PagerDto'
-import { Pager } from '../decorators/Pager.decorator'
+import { pager } from '../decorators/Pager.decorator'
 import { TodoService } from '@modules/todo/services/TodoService'
 import { UpdateTodoDto } from '../dtos/UpdateTodoDto'
-
 
 @Controller('todos')
 export class TodoController {
   private readonly logger = new Logger(TodoController.name)
   constructor(private readonly todoService: TodoService) { }
-
-
 
   @Post()
   async createTodo(
@@ -32,8 +28,6 @@ export class TodoController {
   ): Promise<{ id: number; title: string }> {
     return await this.todoService.createTodo(todoDto.title)
   }
-
-
 
   @Get(':id')
   async getTodo(
@@ -46,15 +40,13 @@ export class TodoController {
     return todo
   }
 
-
-
   @Get()
-  async getAllTodos(@Pager() pager: PagerDto): Promise<{ id: number; title: string }[]> {
-    this.logger.warn('Final page & limit:', pager.page, pager.limit);
-    return this.todoService.getAllTodos(pager.page, pager.limit);
+  async getAllTodos(
+    @pager() pager: PagerDto,
+  ): Promise<{ id: number; title: string }[]> {
+    this.logger.warn('Final page & limit:', pager.page, pager.limit)
+    return this.todoService.getAllTodos(pager.page, pager.limit)
   }
-
-
 
   @Patch(':id')
   async patchTodo(
@@ -67,9 +59,6 @@ export class TodoController {
     }
     return updated
   }
-
-
-
 
   @Delete(':id')
   async deleteTodo(

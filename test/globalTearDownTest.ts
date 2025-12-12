@@ -8,4 +8,4 @@ const teardown = async (): Promise<void> => {
   }
   console.log(':white_check_mark: GLOBAL TEARDOWN END')
 }
-export default teardown
+export { teardown }

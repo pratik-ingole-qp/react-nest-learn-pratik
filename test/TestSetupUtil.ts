@@ -1,5 +1,5 @@
 //import { TodoService } from '@modules/todo/application/services/TodoService';
-import { INestApplication, Logger, ValidationPipe } from '@nestjs/common'
+import { INestApplication, Logger } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '@src/AppModule'
 import { runSharedInitializationWithTest } from '@src/sharedAppInitializationWithTests'
@@ -13,7 +13,8 @@ const startTestApp = async (): Promise<ITestApp> => {
   // logger.localInstance?.setLogLevels?.(['error', 'warn'])
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
-  }).setLogger(logger)
+  })
+    .setLogger(logger)
     .compile()
   const app = moduleRef.createNestApplication()
   app.useLogger(['error', 'warn'])
@@ -31,10 +32,3 @@ export const testSetupUtil = {
   startTestApp,
   closeApp,
 }
-
-
-
-
-
-
-

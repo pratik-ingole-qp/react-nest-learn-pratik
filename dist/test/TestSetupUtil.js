@@ -9,7 +9,8 @@ const startTestApp = async () => {
     const logger = new common_1.Logger();
     const moduleRef = await testing_1.Test.createTestingModule({
         imports: [AppModule_1.AppModule],
-    }).setLogger(logger)
+    })
+        .setLogger(logger)
         .compile();
     const app = moduleRef.createNestApplication();
     app.useLogger(['error', 'warn']);

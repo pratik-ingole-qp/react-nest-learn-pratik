@@ -1,5 +1,5 @@
-import { ensureDockerContainerRunning } from './TestDatabaseUtil'
-import { testEnvLoader } from './utils/TestEnvLoader'
+import {ensureDockerContainerRunning} from './TestDatabaseUtil'
+import {testEnvLoader} from './utils/TestEnvLoader'
 testEnvLoader.loadTestEnvironment()
 module.exports = async (): Promise<void> => {
   console.log('\n:rocket: GLOBAL SETUP START')

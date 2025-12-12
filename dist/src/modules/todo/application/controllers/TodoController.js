@@ -72,7 +72,7 @@ __decorate([
 ], TodoController.prototype, "getTodo", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, Pager_decorator_1.Pager)()),
+    __param(0, (0, Pager_decorator_1.pager)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [PagerDto_1.PagerDto]),
     __metadata("design:returntype", Promise)

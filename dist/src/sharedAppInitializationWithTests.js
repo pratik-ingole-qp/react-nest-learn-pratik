@@ -7,7 +7,7 @@ const runSharedInitializationWithTest = async (app) => {
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
-        transformOptions: { enableImplicitConversion: false, },
+        transformOptions: { enableImplicitConversion: false },
     }));
 };
 exports.runSharedInitializationWithTest = runSharedInitializationWithTest;

@@ -1,6 +1,6 @@
-import { DataSource, Repository } from 'typeorm'
-import { TodoEntity } from '../entities/TodoEntity'
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import {DataSource, Repository} from 'typeorm'
+import {TodoEntity} from '../entities/TodoEntity'
+import {Inject, Injectable, Logger} from '@nestjs/common'
 export const todoRepositoryProvider = [
   {
     provide: 'TODO_REPOSITORY',
@@ -15,12 +15,12 @@ export class TodoRepository {
   constructor(
     @Inject('TODO_REPOSITORY')
     private readonly todoRepository: Repository<TodoEntity>,
-  ) { }
+  ) {}
   async createTodo(todoEntity: TodoEntity): Promise<TodoEntity> {
     return await this.todoRepository.save(todoEntity)
   }
   async getTodoById(id: number): Promise<TodoEntity | null> {
-    return await this.todoRepository.findOne({ where: { id } })
+    return await this.todoRepository.findOne({where: {id}})
   }
   async getAllTodos(page: number, limit: number): Promise<TodoEntity[]> {
     const take = limit
@@ -28,7 +28,7 @@ export class TodoRepository {
     this.logger.warn(typeof limit, typeof page, limit, page)
     this.logger.warn('skip value is ', skip)
     return await this.todoRepository.find({
-      order: { id: 'ASC' },
+      order: {id: 'ASC'},
       skip,
       take,
     })
@@ -46,10 +46,3 @@ export class TodoRepository {
     await this.todoRepository.delete(id)
   }
 }
-
-
-
-
-
-
-
